@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shopping_list/data/categories.dart';
 import 'package:shopping_list/models/category.dart';
 import 'package:shopping_list/models/grocery_item.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class NewItem extends StatefulWidget {
   const NewItem({super.key});
@@ -21,6 +23,17 @@ class _NewItemState extends State<NewItem> {
     if(_formKey.currentState!.validate()) {
 
        _formKey.currentState!.save();
+       
+       // storing to firebase real time database
+       final url = Uri.https('chandra-chat-app-default-rtdb.asia-southeast1.firebasedatabase.app', 'shopping-list.json');
+       http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'name': _enteredName , 'quantity': _enteredQuantity, 'category': _selectedCategory.title
+        }),
+       );
+
 
        // passing data to the parent screen / just one screen below
        Navigator.of(context).pop(GroceryItem(id: DateTime.now().toString(), name: _enteredName , quantity: _enteredQuantity, category: _selectedCategory));
