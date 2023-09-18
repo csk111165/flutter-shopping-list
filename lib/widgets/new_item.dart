@@ -14,6 +14,7 @@ class _NewItemState extends State<NewItem> {
   void _saveItem() {
 
     _formKey.currentState!.validate();
+    _formKey.currentState!.save();
   }
   @override
   Widget build(BuildContext context) {
@@ -41,6 +42,9 @@ class _NewItemState extends State<NewItem> {
                   }
                   return null;
                 },
+                onSaved: (newValue) {
+                  print(newValue);
+                },
               ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -63,6 +67,9 @@ class _NewItemState extends State<NewItem> {
                           return 'Must be a valid, positive number';
                         }
                         return null;
+                      },
+                      onSaved: (newValue) {
+                        print(newValue);
                       },
                     ),
                   ),
