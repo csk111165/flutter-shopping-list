@@ -18,35 +18,42 @@ class _NewItemState extends State<NewItem> {
   var _enteredQuantity = 1;
   var _selectedCategory = categories[Categories.vegetables]!;
 
-  void _saveItem() async{
+  void _saveItem() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
 
-    if(_formKey.currentState!.validate()) {
-
-       _formKey.currentState!.save();
-       
-       // storing to firebase real time database
-       final url = Uri.https('chandra-chat-app-default-rtdb.asia-southeast1.firebasedatabase.app', 'shopping-list.json');
-       final response = await http.post(
+      // storing to firebase real time database
+      final url = Uri.https(
+          'chandra-chat-app-default-rtdb.asia-southeast1.firebasedatabase.app',
+          'shopping-list.json');
+      final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'name': _enteredName , 'quantity': _enteredQuantity, 'category': _selectedCategory.title
+          'name': _enteredName,
+          'quantity': _enteredQuantity,
+          'category': _selectedCategory.title
         }),
-       );
-      
-       if(!context.mounted)
-       {
-          return;
-       }
+      );
+      // decoed will convert the json data to a map
+      final Map<String, dynamic> resData = json.decode(response.body);
+      if (!context.mounted) {
+        return;
+      }
+      // the response body containst the id also, so we want to utlize it for creating the GroceryItem here directly.
+      Navigator.pop(
+          context,
+          GroceryItem(
+              id: resData['name'],
+              name: _enteredName,
+              quantity: _enteredQuantity,
+              category: _selectedCategory));
 
-       Navigator.pop(context);
-
-
-       // passing data to the parent screen / just one screen below
+      // passing data to the parent screen / just one screen below
       //  Navigator.of(context).pop(GroceryItem(id: DateTime.now().toString(), name: _enteredName , quantity: _enteredQuantity, category: _selectedCategory));
     }
-   
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -131,9 +138,8 @@ class _NewItemState extends State<NewItem> {
                       ],
                       onChanged: (value) {
                         setState(() {
-                           _selectedCategory = value!;
+                          _selectedCategory = value!;
                         });
-                       
                       },
                     ),
                   ),

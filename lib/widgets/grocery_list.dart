@@ -30,6 +30,7 @@ class _GroceryListState extends State<GroceryList> {
     final Map<String, dynamic> listData = json.decode(response.body);
     final List<GroceryItem> loadItems = [];
     for (final item in listData.entries) {
+      // here firstWhere would return the first matching entry of type <key, val> , for accessing the category, we have to use .value at end
       final category = categories.entries.firstWhere((catItem) => catItem.value.title == item.value['category']).value;
       loadItems.add(GroceryItem(id: item.key, name: item.value['name'], quantity: item.value['quantity'], category: category));
     }
@@ -48,7 +49,15 @@ class _GroceryListState extends State<GroceryList> {
           builder: (context) => const NewItem(),
         ));
 
-      _loadItems();
+    if (newItem == null) {
+      return ;
+    }
+
+    setState(() {
+      
+      _groceryItems.add(newItem);
+    });
+
   }
 
    void _removeItem(GroceryItem item)
