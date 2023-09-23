@@ -17,10 +17,17 @@ class _NewItemState extends State<NewItem> {
   var _enteredName = '';
   var _enteredQuantity = 1;
   var _selectedCategory = categories[Categories.vegetables]!;
+  var _isSending = false;
 
   void _saveItem() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
+
+      // setting _isSending true so that it can be used to disable the other add item request , while the current is
+      // in progress.
+      setState(() {
+        _isSending = true;
+      });
 
       // storing to firebase real time database
       final url = Uri.https(
@@ -152,15 +159,25 @@ class _NewItemState extends State<NewItem> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: () {
-                      // resetting the value
-                      _formKey.currentState!.reset();
-                    },
+                    onPressed: _isSending
+                        ? null
+                        : () {
+                            // resetting the value
+                            _formKey.currentState!.reset();
+                          },
                     child: const Text('Reset'),
                   ),
                   ElevatedButton(
-                    onPressed: _saveItem,
-                    child: const Text('Add Item'),
+                    onPressed: _isSending
+                        ? null
+                        : _saveItem, // to disable the button when the http request is in progress
+                    child: _isSending
+                        ? const SizedBox(
+                            height: 16,
+                            width: 16,
+                            child: CircularProgressIndicator(), // show the circular progress bar when http request is made
+                          )
+                        : const Text('Add Item'),
                   ),
                 ],
               ),
