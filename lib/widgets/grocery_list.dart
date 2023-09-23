@@ -34,6 +34,15 @@ class _GroceryListState extends State<GroceryList> {
       });
     }
 
+    // handle the case when we get empty response, which means there are no data in firebase
+    if (response.body == 'null') {
+      setState(() {
+        // if is is not set false, it will show the loading screen all the time when there is no data
+        _isLoading = false;
+      });
+      return;
+    }
+
     final Map<String, dynamic> listData = json.decode(response.body);
     final List<GroceryItem> loadItems = [];
     for (final item in listData.entries) {
