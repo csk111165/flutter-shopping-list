@@ -27,41 +27,48 @@ class _GroceryListState extends State<GroceryList> {
     final url = Uri.https(
         'chandra-chat-app-default-rtdb.asia-southeast1.firebasedatabase.app',
         'shopping-list.json');
-    final response = await http.get(url);
-    if (response.statusCode >= 400) {
-      setState(() {
-        _error = 'Failed to fetch data. Please try again later!';
-      });
-    }
 
-    // handle the case when we get empty response, which means there are no data in firebase
-    if (response.body == 'null') {
+    try {
+      final response = await http.get(url);
+      if (response.statusCode >= 400) {
+        setState(() {
+          _error = 'Failed to fetch data. Please try again later!';
+        });
+      }
+
+      // handle the case when we get empty response, which means there are no data in firebase
+      if (response.body == 'null') {
+        setState(() {
+          // if is is not set false, it will show the loading screen all the time when there is no data
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final Map<String, dynamic> listData = json.decode(response.body);
+      final List<GroceryItem> loadItems = [];
+      for (final item in listData.entries) {
+        // here firstWhere would return the first matching entry of type <key, val> , for accessing the category, we have to use .value at end
+        final category = categories.entries
+            .firstWhere(
+                (catItem) => catItem.value.title == item.value['category'])
+            .value;
+        loadItems.add(GroceryItem(
+            id: item.key,
+            name: item.value['name'],
+            quantity: item.value['quantity'],
+            category: category));
+      }
+
       setState(() {
-        // if is is not set false, it will show the loading screen all the time when there is no data
+        _groceryItems = loadItems;
         _isLoading = false;
       });
-      return;
+    } catch (e) {
+      setState(() {
+        _error = 'Something went wrong. Please try again later!';
+      });
     }
-
-    final Map<String, dynamic> listData = json.decode(response.body);
-    final List<GroceryItem> loadItems = [];
-    for (final item in listData.entries) {
-      // here firstWhere would return the first matching entry of type <key, val> , for accessing the category, we have to use .value at end
-      final category = categories.entries
-          .firstWhere(
-              (catItem) => catItem.value.title == item.value['category'])
-          .value;
-      loadItems.add(GroceryItem(
-          id: item.key,
-          name: item.value['name'],
-          quantity: item.value['quantity'],
-          category: category));
-    }
-
-    setState(() {
-      _groceryItems = loadItems;
-      _isLoading = false;
-    });
   }
 
   void _addItem() async {
@@ -81,7 +88,6 @@ class _GroceryListState extends State<GroceryList> {
   }
 
   void _removeItem(GroceryItem item) async {
-
     final index = _groceryItems.indexOf(item);
 
     setState(() {
@@ -91,18 +97,15 @@ class _GroceryListState extends State<GroceryList> {
     final url = Uri.https(
         'chandra-chat-app-default-rtdb.asia-southeast1.firebasedatabase.app',
         'shopping-list/${item.id}.json');
-    
-    final response =  await http.delete(url);
 
-    if(response.statusCode >= 400) {
+    final response = await http.delete(url);
+
+    if (response.statusCode >= 400) {
       // if the delete request is not successful, then we want to add the item back to the list
       setState(() {
-      _groceryItems.insert(index, item);
-    });
+        _groceryItems.insert(index, item);
+      });
     }
-
-    
-    
   }
 
   @override
